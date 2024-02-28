@@ -1,26 +1,30 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const session = require("express-session");
+const passport = require("passport");
+const crypto = require("crypto");
+const routes = require("./routes");
 const MongoStore = require("connect-mongo");
-require("dotenv").config();
 
-const app = express();
 const PORT = 3000;
-
-//db initialization
 const dbString = process.env.MONGO_URI;
 
+const app = express();
+
+require("dotenv").config();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+//db initialization
 mongoose
   .connect(dbString)
   .then(() => {
-    console.log("MongoDB connected");
+    console.log("session MongoDB connected");
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err);
   });
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 const sessionStore = new MongoStore({
   mongoUrl: dbString,
@@ -40,16 +44,14 @@ app.use(
   })
 );
 
-app.get("/", (req, res) => {
-  console.log(req.session);
-  if (req.session.views) {
-    req.session.views++;
-  } else {
-    req.session.views = 1;
-  }
-  res.send(`you visited ${req.session.views}`);
-});
+//passport authentification
+require("./config/passport");
+app.use(passport.initialize());
+app.use(passport.session());
 
+app.use(routes);
+
+//server start
 app.listen(process.env.PORT, () => {
   console.log(`server listening on port ${PORT}...`);
 });
