@@ -3,18 +3,15 @@ const passport = require("passport");
 const { genPassword } = require("../lib/passwordUtils");
 const User = require("../config/database");
 
-/**
- * -------------- POST ROUTES ----------------
- */
-
-// TODO
+//post routes
 router.post(
   "/login",
-  passport.authenticate("local", { failureRedirect: "/login" }),
-  (req, res, next) => {}
+  passport.authenticate("local", { failureRedirect: "/login-failure" }),
+  function (req, res) {
+    res.redirect("/protected-route");
+  }
 );
 
-// TODO
 router.post("/register", (req, res, next) => {
   console.log(req.body.pw);
   const saltHash = genPassword(req.body.pw); //getting pw and generating hash and salt
@@ -34,26 +31,22 @@ router.post("/register", (req, res, next) => {
   res.redirect("/login");
 });
 
-/**
- * -------------- GET ROUTES ----------------
- */
+//Get routes
 
 router.get("/", (req, res, next) => {
   res.send('<h1>Home</h1><p>Please <a href="/register">register</a></p>');
 });
 
-// When you visit http://localhost:3000/login, you will see "Login Page"
 router.get("/login", (req, res, next) => {
   const form =
     '<h1>Login Page</h1><form method="POST" action="/login">\
-    Enter Username:<br><input type="text" name="username">\
-    <br>Enter Password:<br><input type="password" name="password">\
+    Enter Username:<br><input type="text" name="uname">\
+    <br>Enter Password:<br><input type="password" name="pw">\
     <br><br><input type="submit" value="Submit"></form>';
 
   res.send(form);
 });
 
-// When you visit http://localhost:3000/register, you will see "Register Page"
 router.get("/register", (req, res, next) => {
   const form =
     '<h1>Register Page</h1><form method="post" action="register">\
@@ -85,8 +78,9 @@ router.get("/protected-route", (req, res, next) => {
 
 // Visiting this route logs the user out
 router.get("/logout", (req, res, next) => {
-  req.logout();
-  res.redirect("/protected-route");
+  req.logout(function () {
+    res.redirect("/protected-route");
+  });
 });
 
 router.get("/login-success", (req, res, next) => {
