@@ -2,7 +2,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const passport = require("passport");
-const crypto = require("crypto");
 const routes = require("./routes");
 const MongoStore = require("connect-mongo");
 
@@ -48,6 +47,12 @@ app.use(
 require("./config/passport");
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use((req, res, next) => {
+  console.log(req.session);
+  console.log(req.user);
+  next();
+});
 
 app.use(routes);
 
